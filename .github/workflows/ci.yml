@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   ci:
     name: CI
@@ -41,8 +45,27 @@ jobs:
             exit 1
           fi
 
-      - name: Run tests with race detection and coverage
-        run: go test -v -race -coverprofile=coverage.out ./...
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.13.0
+
+      - name: Run tests with gotestsum
+        run: |
+          gotestsum \
+            --junitfile report.xml \
+            --format testname \
+            -- \
+            -race \
+            -coverprofile=coverage.out \
+            -covermode=atomic \
+            ./...
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Go Test Results
+          path: report.xml
+          reporter: java-junit
 
       - name: Build CLI binary
         run: go build -v -o bin/coctyl ./cmd/coctyl
