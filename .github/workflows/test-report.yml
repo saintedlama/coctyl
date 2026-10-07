@@ -21,7 +21,7 @@ jobs:
         run: git init
 
       - name: Test Report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3.0.0
         with:
           artifact: test-results
           name: Go Test Results
