@@ -2,8 +2,8 @@ package coctyl
 
 import (
 	"bufio"
-	"fmt"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -42,10 +42,10 @@ type CheckSummary struct {
 
 // CheckOptions configures the check/integrity behavior.
 type CheckOptions struct {
-	Options               // embeds IncludeImports
-	IntegrityFile string  // path to the integrity file (default: "coctyl.sum")
-	IncludeTests  bool    // include *_test.go files when walking directories
-	Update        bool    // overwrite/update integrity file even if it exists
+	Options              // embeds IncludeImports
+	IntegrityFile string // path to the integrity file (default: "coctyl.sum")
+	IncludeTests  bool   // include *_test.go files when walking directories
+	Update        bool   // overwrite/update integrity file even if it exists
 }
 
 // IntegrityEntry represents a single hash-to-path mapping.
