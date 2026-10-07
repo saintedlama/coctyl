@@ -1,0 +1,55 @@
+﻿name: Publish
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          release-type: go
+
+  binaries:
+    name: Build & Attach Release Binaries
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build cross-platform binaries
+        run: |
+          mkdir -p dist
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/coctyl-linux-amd64 ./cmd/coctyl
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dist/coctyl-linux-arm64 ./cmd/coctyl
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/coctyl-darwin-amd64 ./cmd/coctyl
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dist/coctyl-darwin-arm64 ./cmd/coctyl
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/coctyl-windows-amd64.exe ./cmd/coctyl
+
+      - name: Upload release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.release-please.outputs.tag_name }}" dist/*

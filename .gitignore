@@ -1,0 +1,9 @@
+# Root Binaries
+bin/
+/coctyl.exe
+/coctyl
+
+# Coverage / Test
+coverage.out
+*.out
+*.test
