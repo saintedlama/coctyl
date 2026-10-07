@@ -23,4 +23,5 @@ produce identical dactyls as long as their structural logic is identical.`,
 func init() {
 	rootCmd.AddCommand(newHashCmd())
 	rootCmd.AddCommand(newASTCmd())
+	rootCmd.AddCommand(newCheckCmd())
 }

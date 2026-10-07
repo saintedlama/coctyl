@@ -51,6 +51,16 @@ coctyl hash path/to/file.go
 93315cb160ced58a571006e580aacbc51ef6621d7b6cd864a6e7a49d7625fd38
 ```
 
+### Create and check structural integrity
+
+```bash
+# Creates coctyl.sum on first run
+coctyl check ./...
+
+# Validates all files against coctyl.sum (fails if structural logic changed)
+coctyl check
+```
+
 ## 💡 Why coctyl?
 
 Traditional checksums break the moment you rename a variable, reorder comments, or adjust formatting. `coctyl` is designed for:
@@ -92,6 +102,7 @@ Usage:
 
 Available Commands:
   ast         Print the normalized canonical AST of a Go file
+  check       Verify or generate structural dactyl integrity checksums
   completion  Generate the autocompletion script for the specified shell
   hash        Compute the structural dactyl hash of a Go file
   help        Help about any command
@@ -120,6 +131,51 @@ If you specifically want import statements included in the fingerprint, use `-i`
 
 ```bash
 coctyl hash -i path/to/file.go
+```
+
+### Verify or record structural integrity (`check`)
+
+Manage structural integrity with a checksum file (default: `coctyl.sum`, formatted similarly to `sha256sum`).
+
+```bash
+# 1. First run: if coctyl.sum does not exist, coctyl automatically creates it
+coctyl check
+
+# 2. Subsequent runs: verifies files against stored dactyl hashes
+coctyl check
+
+# 3. Check specific paths or directories
+coctyl check pkg/ cmd/
+
+# 4. Use a custom integrity file
+coctyl check -f .coctyl.sum
+
+# 5. Force update/regenerate the integrity baseline
+coctyl check -u
+```
+
+Refactored variable names, comments, and formatting continue to pass verification (`OK`), while any functional changes or missing files trigger an exit code of `1`:
+
+```text
+cmd/coctyl/main.go: OK
+pkg/coctyl/coctyl.go: OK
+pkg/coctyl/normalize.go: FAILED (hash mismatch)
+coctyl: 1 of 3 file(s) failed integrity check. Run 'coctyl check -u' to update
+```
+
+#### Integrity file format (`coctyl.sum`)
+
+The integrity file follows the standard Unix checksum layout (`<dactyl-hash>  <relative-path>`). Entries are sorted alphabetically by path with forward slashes (`/`) for cross-platform and CI consistency:
+
+```text
+# coctyl integrity file
+# Format: <dactyl-hash>  <relative-path>
+
+3996f8a846c4bfdc39e72bc194df629007e0ff8372ec0b4d45548ca9efadbf36  cmd/coctyl/ast.go
+443a9f07bdbeab666014e7aee07fa4818ee2eaee37a5ea79cfa3ddf7a8341ae6  cmd/coctyl/check.go
+93315cb160ced58a571006e580aacbc51ef6621d7b6cd864a6e7a49d7625fd38  cmd/coctyl/hash.go
+8be0a5a544c7482813df6581907cb3878b4d8d17215174092497672dc6be12ef  cmd/coctyl/main.go
+a05ff743f51ffcfa276e033ef0c78fe209c1fa41fa7760773d32845c0556f874  pkg/coctyl/coctyl.go
 ```
 
 ### Inspect the normalized canonical AST (`ast`)
@@ -168,6 +224,15 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("Canonical AST: %s\n", astStr)
+
+	// 3. Verify structural integrity against an integrity file (e.g. coctyl.sum)
+	summary, err := coctyl.CheckIntegrity([]string{"pkg/"}, coctyl.CheckOptions{
+		IntegrityFile: "coctyl.sum",
+	})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Integrity: %d passed, %d failed\n", summary.Passed, summary.Failed)
 }
 ```
 
