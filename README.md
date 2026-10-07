@@ -1,12 +1,57 @@
-# coctyl 🪪
+# Coctyl
 
-> Dactyloscopy for your Go source code. Hash the logic, ignore the labels.
+<p align="center">
+  <img src="assets/logo.png" width="96" height="96" alt="Coctyl Logo" />
+</p>
+
+<p align="center">
+  <strong>Dactyloscopy for your Go source code. Hash the logic, ignore the labels.</strong><br />
+  A fast, structural fingerprinting CLI and library for Go.<br />
+  Proves functional equality across refactorings, variable renames, and package moves.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="https://github.com/saintedlama/coctyl/releases"><img src="https://img.shields.io/github/v/release/saintedlama/coctyl?color=emerald" alt="Release" /></a>
+  <a href="https://github.com/saintedlama/coctyl/actions/workflows/ci.yml"><img src="https://github.com/saintedlama/coctyl/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
+  <a href="https://pkg.go.dev/github.com/saintedlama/coctyl/pkg/coctyl"><img src="https://pkg.go.dev/badge/github.com/saintedlama/coctyl/pkg/coctyl.svg" alt="Go Reference" /></a>
+  <a href="https://goreportcard.com/report/github.com/saintedlama/coctyl"><img src="https://goreportcard.com/badge/github.com/saintedlama/coctyl" alt="Go Report Card" /></a>
+</p>
+
+<p align="center">
+  <a href="#-quickstart">⚡ Quickstart</a> &nbsp;•&nbsp;
+  <a href="#-why-coctyl">💡 Why coctyl?</a> &nbsp;•&nbsp;
+  <a href="#-how-it-works">🔬 How it Works</a> &nbsp;•&nbsp;
+  <a href="#-cli-usage">💻 CLI Usage</a> &nbsp;•&nbsp;
+  <a href="#-library-usage">📚 Library Usage</a> &nbsp;•&nbsp;
+  <a href="#-contributing">🤝 Contributing</a>
+</p>
+
+---
 
 `coctyl` is a structural fingerprinting CLI and library for Go. It parses your source code into an Abstract Syntax Tree (AST), canonicalizes local variable bindings via scope-aware alpha-normalization ($\alpha$-conversion), and generates a robust SHA-256 signature—a **dactyl**.
 
 If two functions have entirely different variable names but perform the exact same structural logic, `coctyl` guarantees they will produce the exact same fingerprint. Crucially, `coctyl` preserves dataflow integrity: `a + b` and `a + a` produce different fingerprints.
 
-## Why use coctyl?
+## ⚡ Quickstart
+
+### Install via Go
+
+```bash
+go install github.com/saintedlama/coctyl/cmd/coctyl@latest
+```
+
+### Hash a Go file
+
+```bash
+coctyl hash path/to/file.go
+```
+
+```text
+93315cb160ced58a571006e580aacbc51ef6621d7b6cd864a6e7a49d7625fd38
+```
+
+## 💡 Why coctyl?
 
 Traditional checksums break the moment you rename a variable, reorder comments, or adjust formatting. `coctyl` is designed for:
 * **Refactoring Verification:** Prove that renaming local variables, parameters, or receivers didn't alter the structural flow of a critical function.
@@ -14,22 +59,16 @@ Traditional checksums break the moment you rename a variable, reorder comments, 
 * **Smart Caching:** Rebuild or retest components only when *structural logic* changes.
 * **Relocation & Moving Code:** By default, import declarations and package headers are excluded from the fingerprint, allowing code parts to move dynamically across files or packages without invalidating structural fingerprints.
 
-## How it Works
+## 🔬 How it Works
 
 `coctyl` takes a structural "cast" of your Go AST via a two-pass pipeline:
 
 1. **Parse:** Reads `.go` files using `go/parser` and constructs the standard AST.
-2. **Pass 1 — Alpha-Normalize (`pkg/coctyl/normalize.go`):** Walks lexical scopes (parameters, receivers, short variable declarations `:=`, block scopes, and closures). Local identifiers are mapped to deterministic canonical slots (`$0`, `$1`, ...), while preserving language built-ins (`len`, `make`), standard library packages, and struct field selectors. Comments and redundant parentheses are discarded.
-3. **Pass 2 — Stateless Serialization (`pkg/coctyl/serialize.go`):** Renders the normalized AST directly into a deterministic, formatting-agnostic canonical S-expression string.
-4. **Hash (`pkg/coctyl/hasher.go`):** The canonical S-expression is passed through SHA-256 to produce the final **dactyl**.
+2. **Pass 1 — Alpha-Normalize ([`pkg/coctyl/normalize.go`](file:///C:/p/coctyl/pkg/coctyl/normalize.go)):** Walks lexical scopes (parameters, receivers, short variable declarations `:=`, block scopes, and closures). Local identifiers are mapped to deterministic canonical slots (`$0`, `$1`, ...), while preserving language built-ins (`len`, `make`), standard library packages, and struct field selectors. Comments and redundant parentheses are discarded.
+3. **Pass 2 — Stateless Serialization ([`pkg/coctyl/serialize.go`](file:///C:/p/coctyl/pkg/coctyl/serialize.go)):** Renders the normalized AST directly into a deterministic, formatting-agnostic canonical S-expression string.
+4. **Hash ([`pkg/coctyl/hasher.go`](file:///C:/p/coctyl/pkg/coctyl/hasher.go)):** The canonical S-expression is passed through SHA-256 to produce the final **dactyl**.
 
-## Installation
-
-```bash
-go install github.com/saintedlama/coctyl/cmd/coctyl@latest
-```
-
-## CLI Usage
+## 💻 CLI Usage
 
 ### View Available Commands
 
@@ -63,7 +102,7 @@ Flags:
 Use "coctyl [command] --help" for more information about a command.
 ```
 
-### Compute the dactyl hash of a Go file
+### Compute the dactyl hash (`hash`)
 
 ```bash
 coctyl hash path/to/file.go
@@ -105,7 +144,7 @@ coctyl ast -p path/to/file.go
 coctyl ast -i path/to/file.go
 ```
 
-## Library Usage
+## 📚 Library Usage
 
 ```go
 package main
@@ -132,6 +171,10 @@ func main() {
 }
 ```
 
-## License
+## 🤝 Contributing
 
-[MIT](LICENSE) © 2026 Christoph Walcher
+Contributions are welcome! Please check out [CONTRIBUTING.md](file:///C:/p/coctyl/CONTRIBUTING.md) and our [Code of Conduct](file:///C:/p/coctyl/CODE_OF_CONDUCT.md).
+
+## 📄 License
+
+[MIT](file:///C:/p/coctyl/LICENSE) © 2026 Christoph Walcher
